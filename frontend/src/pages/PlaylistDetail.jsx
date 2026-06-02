@@ -36,7 +36,17 @@ export default function PlaylistDetail() {
 
   const toggleWatch = async (videoId) => {
     // Optimistic UI update
-    setVideos(videos.map(v => v._id === videoId ? { ...v, isWatched: !v.isWatched } : v));
+    setVideos(videos.map(v => {
+      if (v._id === videoId) {
+        const newlyWatched = !v.isWatched;
+        return { 
+          ...v, 
+          isWatched: newlyWatched,
+          watchedAt: newlyWatched ? new Date().toISOString() : null
+        };
+      }
+      return v;
+    }));
     try {
       await api.put(`/playlists/video/${videoId}/watch`);
     } catch (err) {
