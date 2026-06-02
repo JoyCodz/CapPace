@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Circle, Trash2, Calendar, ExternalLink, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Circle, Trash2, Calendar, ExternalLink, Plus, RefreshCw } from 'lucide-react';
 import api from '../api';
+import Footer from '../components/Footer';
 
 export default function PlaylistDetail() {
   const { id } = useParams();
@@ -14,6 +15,7 @@ export default function PlaylistDetail() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskUrl, setNewTaskUrl] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     fetchPlaylistData();
@@ -70,6 +72,19 @@ export default function PlaylistDetail() {
     }
   };
 
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await api.post(`/playlists/${id}/sync`);
+      fetchPlaylistData();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to sync playlist');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen bg-background flex items-center justify-center text-white">Loading...</div>;
   }
@@ -116,9 +131,21 @@ export default function PlaylistDetail() {
             <Calendar size={16} className="mr-2" /> Goal: {playlist.dailyGoal} videos/day
           </p>
         </div>
-        <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-primary transition-colors bg-surface border border-white/5 rounded-lg">
-          <Trash2 size={20} />
-        </button>
+        <div className="flex gap-2">
+          {playlist.playlistType !== 'custom' && (
+            <button 
+              onClick={handleSync} 
+              disabled={isSyncing}
+              className="p-2 text-gray-400 hover:text-white transition-colors bg-surface border border-white/5 rounded-lg disabled:opacity-50"
+              title="Sync with YouTube"
+            >
+              <RefreshCw size={20} className={isSyncing ? "animate-spin" : ""} />
+            </button>
+          )}
+          <button onClick={handleDelete} className="p-2 text-gray-500 hover:text-primary transition-colors bg-surface border border-white/5 rounded-lg" title="Delete Playlist">
+            <Trash2 size={20} />
+          </button>
+        </div>
       </header>
 
       {/* Progress Bar */}
@@ -263,6 +290,7 @@ export default function PlaylistDetail() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

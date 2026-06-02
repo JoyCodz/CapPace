@@ -130,6 +130,67 @@ router.post('/:id/videos', auth, async (req, res) => {
   }
 });
 
+// Sync YouTube Playlist
+router.post('/:id/sync', auth, async (req, res) => {
+  try {
+    const playlistId = req.params.id;
+    const playlist = await Playlist.findOne({ _id: playlistId, userId: req.user });
+    if (!playlist) return res.status(404).json({ message: 'Playlist not found' });
+    if (playlist.playlistType === 'custom') return res.status(400).json({ message: 'Cannot sync custom playlists' });
+
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    
+    // Fetch playlist items (videos)
+    let videos = [];
+    let nextPageToken = '';
+    do {
+      const itemsRes = await axios.get('https://www.googleapis.com/youtube/v3/playlistItems', {
+        params: {
+          part: 'snippet',
+          playlistId: playlist.youtubePlaylistId,
+          maxResults: 50,
+          pageToken: nextPageToken,
+          key: apiKey
+        }
+      });
+      videos = videos.concat(itemsRes.data.items);
+      nextPageToken = itemsRes.data.nextPageToken;
+    } while (nextPageToken);
+
+    // Get existing video IDs
+    const existingVideos = await Video.find({ playlistId: playlist._id });
+    const existingYoutubeIds = new Set(existingVideos.map(v => v.youtubeVideoId).filter(id => id));
+
+    const newVideoDocs = [];
+    let currentSequence = playlist.totalVideos;
+
+    videos.forEach((item) => {
+      const yId = item.snippet.resourceId.videoId;
+      if (!existingYoutubeIds.has(yId)) {
+        newVideoDocs.push({
+          playlistId: playlist._id,
+          youtubeVideoId: yId,
+          title: item.snippet.title,
+          thumbnail: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
+          sequenceIndex: currentSequence++
+        });
+        existingYoutubeIds.add(yId);
+      }
+    });
+
+    if (newVideoDocs.length > 0) {
+      await Video.insertMany(newVideoDocs);
+      playlist.totalVideos += newVideoDocs.length;
+      await playlist.save();
+    }
+
+    res.json({ message: 'Sync complete', added: newVideoDocs.length });
+  } catch (error) {
+    console.error('Error syncing playlist:', error?.response?.data || error);
+    res.status(500).json({ message: 'Server error syncing playlist' });
+  }
+});
+
 // Get all user playlists
 router.get('/', auth, async (req, res) => {
   try {

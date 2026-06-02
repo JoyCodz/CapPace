@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Plus, PlayCircle, Activity, PieChart as PieChartIcon, KeyRound, X, TrendingUp } from 'lucide-react';
+import { LogOut, Plus, PlayCircle, Activity, PieChart as PieChartIcon, Settings, X, TrendingUp } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import api from '../api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import Footer from '../components/Footer';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -29,12 +30,13 @@ export default function Dashboard() {
   // Custom Form State
   const [customTitle, setCustomTitle] = useState('');
 
-  // Password Change State
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  // Password Change & Account State
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' });
   const [changingPwd, setChangingPwd] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Activity State
   const [activityData, setActivityData] = useState([]);
@@ -114,21 +116,34 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you ABSOLUTELY sure? This will delete your account and all associated data permanently.')) return;
+    setIsDeletingAccount(true);
+    try {
+      await api.delete('/auth/account');
+      localStorage.removeItem('token');
+      navigate('/register');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete account');
+      setIsDeletingAccount(false);
+    }
+  };
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-background text-white p-6 md:p-12 relative">
-      {/* Password Modal */}
-      {showPasswordModal && (
+      {/* Settings Modal */}
+      {showSettingsModal && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-surface border border-white/10 p-6 rounded-2xl w-full max-w-sm relative shadow-2xl">
             <button 
-              onClick={() => setShowPasswordModal(false)}
+              onClick={() => setShowSettingsModal(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
               <X size={20} />
             </button>
             <h2 className="text-xl font-bold mb-4 flex items-center">
-              <KeyRound className="mr-2 text-primary" size={20} /> Change Password
+              <Settings className="mr-2 text-primary" size={20} /> Account Settings
             </h2>
             
             {passwordMsg.text && (
@@ -137,7 +152,8 @@ export default function Dashboard() {
               </div>
             )}
 
-            <form onSubmit={handleChangePassword} className="space-y-4">
+            <form onSubmit={handleChangePassword} className="space-y-4 mb-6">
+              <h3 className="text-sm font-semibold text-white/80 border-b border-white/10 pb-2">Change Password</h3>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Current Password</label>
                 <input
@@ -167,6 +183,17 @@ export default function Dashboard() {
                 {changingPwd ? 'Updating...' : 'Update Password'}
               </button>
             </form>
+
+            <div className="pt-4 border-t border-white/10">
+               <h3 className="text-sm font-semibold text-red-400 mb-3">Danger Zone</h3>
+               <button
+                 onClick={handleDeleteAccount}
+                 disabled={isDeletingAccount}
+                 className="w-full bg-red-500/10 text-red-500 font-semibold py-2 rounded-lg hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50"
+               >
+                 {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
+               </button>
+            </div>
           </div>
         </div>
       )}
@@ -174,9 +201,9 @@ export default function Dashboard() {
       <header className="flex justify-between items-center mb-12">
         <h1 className="text-2xl font-bold">Cap<span className="text-primary">Pace</span></h1>
         <div className="flex items-center gap-6">
-          <button onClick={() => setShowPasswordModal(true)} className="flex items-center text-gray-400 hover:text-white transition-colors">
-            <KeyRound size={18} className="mr-2" />
-            Password
+          <button onClick={() => setShowSettingsModal(true)} className="flex items-center text-gray-400 hover:text-white transition-colors">
+            <Settings size={18} className="mr-2" />
+            Account
           </button>
           <button onClick={handleLogout} className="flex items-center text-gray-400 hover:text-red-400 transition-colors">
             <LogOut size={18} className="mr-2" />
@@ -365,6 +392,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
     </ErrorBoundary>
   );
