@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0D0D0F;
+  --color-surface: #1A1A1F;
+  --color-primary: #FF0000;
+  --color-secondary: #6366F1;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-white antialiased font-sans;
+  }
+}
+
+/* Custom scrollbar for better aesthetics */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
