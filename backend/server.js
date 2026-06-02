@@ -17,6 +17,9 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'CapPace API is running correctly!' });
+});
 app.use('/api/auth', authRoutes);
 app.use('/api/playlists', playlistRoutes);
 
