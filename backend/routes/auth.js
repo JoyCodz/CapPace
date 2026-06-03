@@ -23,6 +23,7 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ token, userId: user._id, email });
   } catch (error) {
+    console.error("Register Error:", error);
     res.status(500).json({ message: 'Server error' });
   }
 });
