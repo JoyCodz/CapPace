@@ -16,7 +16,11 @@ export default function Login({ setIsAuthenticated }) {
       setIsAuthenticated(true);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      if (err.response?.data?.isPending) {
+        navigate('/verify-email', { state: { email } });
+      } else {
+        setError(err.response?.data?.message || 'Login failed');
+      }
     }
   };
 

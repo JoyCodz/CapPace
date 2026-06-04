@@ -30,6 +30,15 @@ export default function Dashboard() {
   // Custom Form State
   const [customTitle, setCustomTitle] = useState('');
 
+  // Profile State
+  const [userProfile, setUserProfile] = useState({ name: '', email: '' });
+  const [profileName, setProfileName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
+  const [updatingProfile, setUpdatingProfile] = useState(false);
+  const [showEmailCodeInput, setShowEmailCodeInput] = useState(false);
+  const [emailCode, setEmailCode] = useState('');
+
   // Password Change & Account State
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -48,9 +57,21 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetchUser();
     fetchPlaylists();
     fetchActivity();
   }, []);
+
+  const fetchUser = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      setUserProfile(res.data);
+      setProfileName(res.data.name || '');
+      setProfileEmail(res.data.email || '');
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchPlaylists = async () => {
     try {
@@ -99,6 +120,48 @@ export default function Dashboard() {
     navigate('/login');
   };
 
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setUpdatingProfile(true);
+    setProfileMsg({ type: '', text: '' });
+    try {
+      const res = await api.put('/auth/profile', { 
+        name: profileName, 
+        newEmail: profileEmail !== userProfile.email ? profileEmail : undefined 
+      });
+      setUserProfile({ ...userProfile, name: profileName });
+      
+      if (res.data.emailVerificationSent) {
+        setProfileMsg({ type: 'success', text: 'Verification code sent to your new email.' });
+        setShowEmailCodeInput(true);
+      } else {
+        setProfileMsg({ type: 'success', text: 'Profile updated successfully!' });
+      }
+    } catch (err) {
+      setProfileMsg({ type: 'error', text: err.response?.data?.message || 'Failed to update profile' });
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
+  const handleVerifyNewEmail = async (e) => {
+    e.preventDefault();
+    setUpdatingProfile(true);
+    setProfileMsg({ type: '', text: '' });
+    try {
+      const res = await api.post('/auth/verify-new-email', { code: emailCode });
+      setUserProfile({ ...userProfile, email: res.data.email });
+      setProfileEmail(res.data.email);
+      setShowEmailCodeInput(false);
+      setEmailCode('');
+      setProfileMsg({ type: 'success', text: 'Email updated successfully!' });
+    } catch (err) {
+      setProfileMsg({ type: 'error', text: err.response?.data?.message || 'Failed to verify email' });
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setChangingPwd(true);
@@ -145,6 +208,77 @@ export default function Dashboard() {
             <h2 className="text-xl font-bold mb-4 flex items-center">
               <Settings className="mr-2 text-primary" size={20} /> Account Settings
             </h2>
+
+            <div className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+
+            {/* Profile Settings */}
+            {profileMsg.text && (
+              <div className={`p-3 rounded-lg mb-4 text-sm ${profileMsg.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                {profileMsg.text}
+              </div>
+            )}
+
+            {!showEmailCodeInput ? (
+              <form onSubmit={handleUpdateProfile} className="space-y-4 mb-6">
+                <h3 className="text-sm font-semibold text-white/80 border-b border-white/10 pb-2">Profile Details</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
+                  <input
+                    type="text"
+                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-secondary transition-colors text-sm"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                  <input
+                    type="email"
+                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-secondary transition-colors text-sm"
+                    value={profileEmail}
+                    onChange={(e) => setProfileEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={updatingProfile}
+                  className="w-full bg-secondary text-white font-semibold py-2 rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 mt-2"
+                >
+                  {updatingProfile ? 'Updating...' : 'Update Profile'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyNewEmail} className="space-y-4 mb-6">
+                <h3 className="text-sm font-semibold text-white/80 border-b border-white/10 pb-2">Verify New Email</h3>
+                <p className="text-sm text-gray-400 mb-2">Enter the 6-digit code sent to {profileEmail}.</p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Verification Code</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    className="w-full text-center tracking-[0.5em] font-mono text-xl bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-secondary transition-colors"
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value.replace(/[^0-9]/g, ''))}
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={updatingProfile || emailCode.length !== 6}
+                  className="w-full bg-secondary text-white font-semibold py-2 rounded-lg hover:bg-secondary/90 transition-colors disabled:opacity-50 mt-2"
+                >
+                  {updatingProfile ? 'Verifying...' : 'Verify & Change Email'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEmailCodeInput(false)}
+                  className="w-full text-sm text-gray-400 hover:text-white transition-colors mt-2"
+                >
+                  Cancel Email Change
+                </button>
+              </form>
+            )}
             
             {passwordMsg.text && (
               <div className={`p-3 rounded-lg mb-4 text-sm ${passwordMsg.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
@@ -193,6 +327,7 @@ export default function Dashboard() {
                >
                  {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
                </button>
+            </div>
             </div>
           </div>
         </div>
