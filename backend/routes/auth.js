@@ -11,6 +11,49 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
+const getEmailTemplate = (name, code, descriptionText) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { margin: 0; padding: 0; background-color: #0D0D0F; color: #ffffff; font-family: Arial, sans-serif; }
+    .container { max-width: 600px; margin: 40px auto; background-color: #1A1A1F; border: 1px solid #333; border-radius: 16px; overflow: hidden; }
+    .header { padding: 32px; text-align: center; background-color: #131317; border-bottom: 1px solid #333; }
+    .logo { width: 50px; margin-bottom: 16px; }
+    .brand-name { font-size: 28px; font-weight: bold; color: #ffffff; margin: 0; }
+    .brand-name span { color: #FF0000; }
+    .content { padding: 40px; text-align: center; }
+    h1 { font-size: 24px; margin-top: 0; margin-bottom: 16px; color: #ffffff; }
+    p { font-size: 16px; line-height: 1.6; color: #A1A1AA; margin: 0 0 24px 0; }
+    .code-box { background-color: #000000; border: 1px solid #333; border-radius: 12px; padding: 24px; margin: 32px 0; }
+    .code { font-family: monospace; font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #6366F1; margin: 0; }
+    .footer { padding: 24px; text-align: center; background-color: #131317; border-top: 1px solid #333; }
+    .footer p { font-size: 13px; color: #71717A; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://cappace-production.vercel.app/cappace_logo.png" alt="CapPace Logo" class="logo">
+      <h2 class="brand-name">Cap<span>Pace</span></h2>
+    </div>
+    <div class="content">
+      <h1>Verify your email</h1>
+      <p>Hello ${name || 'there'} 👋<br>${descriptionText}</p>
+      <div class="code-box">
+        <p class="code">${code}</p>
+      </div>
+      <p style="font-size: 14px; margin-bottom: 0;">This code expires in <strong>2 minutes</strong>.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} CapPace. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
 // Register
 router.post('/register', async (req, res) => {
   try {
@@ -41,16 +84,7 @@ router.post('/register', async (req, res) => {
       from: "noreply@cappace.me",
       to: email,
       subject: "Verify your CapPace account",
-      html: `
-        <div style="font-family:Arial;padding:20px">
-          <h1>Hello ${name} 👋</h1>
-          <p>Thank you for joining CapPace!</p>
-          <div style="background:#f4f4f4;padding:15px;border-radius:10px;margin-top:20px;font-size:24px;letter-spacing:4px;font-weight:bold;text-align:center;">
-            ${verificationCode}
-          </div>
-          <p style="margin-top:20px">This code expires in 2 minutes.</p>
-        </div>
-      `,
+      html: getEmailTemplate(name, verificationCode, "Thank you for joining CapPace! To complete your registration and start pacing your learning, please use the verification code below."),
     });
 
     if (error) {
@@ -111,16 +145,7 @@ router.post('/resend-code', async (req, res) => {
       from: "noreply@cappace.me",
       to: email,
       subject: "Verify your CapPace account (Resend)",
-      html: `
-        <div style="font-family:Arial;padding:20px">
-          <h1>Hello ${pendingUser.name} 👋</h1>
-          <p>Here is your new verification code:</p>
-          <div style="background:#f4f4f4;padding:15px;border-radius:10px;margin-top:20px;font-size:24px;letter-spacing:4px;font-weight:bold;text-align:center;">
-            ${newCode}
-          </div>
-          <p style="margin-top:20px">This code expires in 2 minutes.</p>
-        </div>
-      `,
+      html: getEmailTemplate(pendingUser.name, newCode, "Here is your new verification code. Please use it to complete your registration."),
     });
 
     if (error) {
@@ -196,16 +221,7 @@ router.put('/profile', auth, async (req, res) => {
         from: "noreply@cappace.me",
         to: newEmail,
         subject: "Verify your new CapPace email",
-        html: `
-          <div style="font-family:Arial;padding:20px">
-            <h1>Hello ${user.name || ''} 👋</h1>
-            <p>You requested to change your email address. Use the code below to verify it:</p>
-            <div style="background:#f4f4f4;padding:15px;border-radius:10px;margin-top:20px;font-size:24px;letter-spacing:4px;font-weight:bold;text-align:center;">
-              ${code}
-            </div>
-            <p style="margin-top:20px">This code expires in 2 minutes.</p>
-          </div>
-        `,
+        html: getEmailTemplate(user.name, code, "You requested to change your email address. Use the code below to verify it:"),
       });
 
       if (error) {
