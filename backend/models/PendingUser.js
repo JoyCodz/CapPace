@@ -21,7 +21,7 @@ const pendingUserSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 3600 // Automatically delete document after 1 hour (3600 seconds)
+    expires: 120 // Automatically delete document after 2 minutes (120 seconds)
   }
 });
 

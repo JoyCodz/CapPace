@@ -48,7 +48,7 @@ router.post('/register', async (req, res) => {
           <div style="background:#f4f4f4;padding:15px;border-radius:10px;margin-top:20px;font-size:24px;letter-spacing:4px;font-weight:bold;text-align:center;">
             ${verificationCode}
           </div>
-          <p style="margin-top:20px">This code expires in 1 hour.</p>
+          <p style="margin-top:20px">This code expires in 2 minutes.</p>
         </div>
       `,
     });
@@ -118,7 +118,7 @@ router.post('/resend-code', async (req, res) => {
           <div style="background:#f4f4f4;padding:15px;border-radius:10px;margin-top:20px;font-size:24px;letter-spacing:4px;font-weight:bold;text-align:center;">
             ${newCode}
           </div>
-          <p style="margin-top:20px">This code expires in 1 hour.</p>
+          <p style="margin-top:20px">This code expires in 2 minutes.</p>
         </div>
       `,
     });
@@ -190,7 +190,7 @@ router.put('/profile', auth, async (req, res) => {
       const code = generateCode();
       user.newEmail = newEmail;
       user.newEmailVerificationCode = code;
-      user.newEmailVerificationCodeExpiresAt = Date.now() + 3600000; // 1 hour
+      user.newEmailVerificationCodeExpiresAt = Date.now() + 120000; // 2 minutes
 
       const { data, error } = await resend.emails.send({
         from: "noreply@cappace.me",
@@ -203,7 +203,7 @@ router.put('/profile', auth, async (req, res) => {
             <div style="background:#f4f4f4;padding:15px;border-radius:10px;margin-top:20px;font-size:24px;letter-spacing:4px;font-weight:bold;text-align:center;">
               ${code}
             </div>
-            <p style="margin-top:20px">This code expires in 1 hour.</p>
+            <p style="margin-top:20px">This code expires in 2 minutes.</p>
           </div>
         `,
       });
