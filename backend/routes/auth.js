@@ -37,7 +37,7 @@ router.post('/register', async (req, res) => {
     await pendingUser.save();
 
     // Send email
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: "noreply@cappace.me",
       to: email,
       subject: "Verify your CapPace account",
@@ -52,6 +52,13 @@ router.post('/register', async (req, res) => {
         </div>
       `,
     });
+
+    if (error) {
+      console.error("Resend API Error (Register):", error);
+      // We can decide to still return 201 or return 500 depending on UX.
+      // Let's return 500 so they know it failed and can try again.
+      return res.status(500).json({ message: 'Failed to send verification email.' });
+    }
 
     res.status(201).json({ message: 'Verification email sent', email });
   } catch (error) {
@@ -100,7 +107,7 @@ router.post('/resend-code', async (req, res) => {
     pendingUser.createdAt = Date.now(); // Reset TTL
     await pendingUser.save();
 
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: "noreply@cappace.me",
       to: email,
       subject: "Verify your CapPace account (Resend)",
@@ -115,6 +122,11 @@ router.post('/resend-code', async (req, res) => {
         </div>
       `,
     });
+
+    if (error) {
+      console.error("Resend API Error (Resend Code):", error);
+      return res.status(500).json({ message: 'Failed to send new verification email.' });
+    }
 
     res.json({ message: 'Code resent' });
   } catch (error) {
@@ -180,7 +192,7 @@ router.put('/profile', auth, async (req, res) => {
       user.newEmailVerificationCode = code;
       user.newEmailVerificationCodeExpiresAt = Date.now() + 3600000; // 1 hour
 
-      await resend.emails.send({
+      const { data, error } = await resend.emails.send({
         from: "noreply@cappace.me",
         to: newEmail,
         subject: "Verify your new CapPace email",
@@ -195,6 +207,11 @@ router.put('/profile', auth, async (req, res) => {
           </div>
         `,
       });
+
+      if (error) {
+        console.error("Resend API Error (Profile Email Update):", error);
+        return res.status(500).json({ message: 'Failed to send verification code to the new email.' });
+      }
       emailVerificationSent = true;
     }
 
