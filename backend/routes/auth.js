@@ -26,8 +26,8 @@ const getEmailTemplate = (name, code, descriptionText) => `
     .content { padding: 40px; text-align: center; }
     h1 { font-size: 24px; margin-top: 0; margin-bottom: 16px; color: #ffffff; }
     p { font-size: 16px; line-height: 1.6; color: #A1A1AA; margin: 0 0 24px 0; }
-    .code-box { background-color: #000000; border: 1px solid #333; border-radius: 12px; padding: 24px; margin: 32px 0; }
-    .code { font-family: monospace; font-size: 36px; font-weight: bold; letter-spacing: 12px; color: #6366F1; margin: 0; }
+    .code-box { background-color: #27272A; border: 1px solid #3F3F46; border-radius: 8px; padding: 16px 24px; margin: 24px auto; width: max-content; }
+    .code { font-family: Helvetica, Arial, sans-serif; font-size: 36px; font-weight: bold; letter-spacing: 6px; color: #ffffff; margin: 0; text-align: center; }
     .footer { padding: 24px; text-align: center; background-color: #131317; border-top: 1px solid #333; }
     .footer p { font-size: 13px; color: #71717A; margin: 0; }
   </style>
@@ -35,7 +35,7 @@ const getEmailTemplate = (name, code, descriptionText) => `
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://cappace-production.vercel.app/cappace_logo.png" alt="CapPace Logo" class="logo">
+      <img src="https://cappace-production.vercel.app/cappace_logo.png?v=2" alt="CapPace Logo" class="logo">
       <h2 class="brand-name">Cap<span>Pace</span></h2>
     </div>
     <div class="content">
