@@ -334,7 +334,10 @@ export default function Dashboard() {
       )}
 
       <header className="flex justify-between items-center mb-12">
-        <h1 className="text-2xl font-bold">Cap<span className="text-primary">Pace</span></h1>
+        <h1 className="text-2xl font-bold flex items-center">
+          <img src="/cappace_logo.png" alt="CapPace Logo" className="w-8 h-8 mr-2" />
+          Cap<span className="text-primary">Pace</span>
+        </h1>
         <div className="flex items-center gap-6">
           <button onClick={() => setShowSettingsModal(true)} className="flex items-center text-gray-400 hover:text-white transition-colors">
             <Settings size={18} className="mr-2" />

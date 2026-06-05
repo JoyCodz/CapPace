@@ -133,6 +133,10 @@ export default function PlaylistDetail() {
     <div className="min-h-screen bg-background text-white p-6 md:p-12">
       <header className="mb-8 flex justify-between items-start">
         <div>
+          <div className="flex items-center mb-6">
+            <img src="/cappace_logo.png" alt="CapPace Logo" className="w-8 h-8 mr-2" />
+            <span className="text-xl font-bold">Cap<span className="text-primary">Pace</span></span>
+          </div>
           <Link to="/dashboard" className="text-gray-400 hover:text-white flex items-center mb-4 transition-colors">
             <ArrowLeft size={16} className="mr-2" /> Back to Dashboard
           </Link>

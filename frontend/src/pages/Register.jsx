@@ -29,7 +29,10 @@ export default function Register({ setIsAuthenticated }) {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="max-w-md w-full bg-surface p-8 rounded-2xl shadow-xl border border-white/5">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Join Cap<span className="text-primary">Pace</span></h1>
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center">
+            <img src="/cappace_logo.png" alt="CapPace Logo" className="w-10 h-10 mr-3" />
+            Join Cap<span className="text-primary">Pace</span>
+          </h1>
           <p className="text-gray-400">Create an account to start pacing your learning.</p>
         </div>
 
