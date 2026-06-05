@@ -5,12 +5,10 @@ export default function Footer() {
         <span>&copy; {new Date().getFullYear()} CapPace</span>
         <span className="hidden md:inline text-gray-700">&bull;</span>
         <a 
-          href="https://github.com/JoyCodz/CapPace" 
-          target="_blank" 
-          rel="noopener noreferrer"
+          href="mailto:support@cappace.me" 
           className="hover:text-white transition-colors"
         >
-          GitHub Repository
+          Support: support@cappace.me
         </a>
       </div>
     </footer>
