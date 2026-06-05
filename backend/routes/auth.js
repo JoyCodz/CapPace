@@ -35,7 +35,7 @@ const getEmailTemplate = (name, code, descriptionText) => `
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://cappace-production.vercel.app/cappace_logo.png?v=5" alt="CapPace Logo" class="logo">
+      <img src="https://cappace.vercel.app/cappace_logo.png" alt="CapPace Logo" class="logo">
       <h2 class="brand-name">Cap<span>Pace</span></h2>
     </div>
     <div class="content">
